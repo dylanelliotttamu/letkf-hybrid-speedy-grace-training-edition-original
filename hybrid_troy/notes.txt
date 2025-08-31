@@ -1,0 +1,11 @@
+root writing truth
+ 4*ix*il       18432
+ kx           8
+ ngp =         4608
+ ix          96
+ il          48
+ Size of ugr_h:       36864
+At line 1293 of file mpires.f90 (unit = 99, file = 'climo_ensemble_data_member001.grd')
+Fortran runtime error: Write exceeds length of DIRECT access record
+
+

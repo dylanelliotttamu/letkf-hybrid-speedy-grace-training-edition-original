@@ -1,0 +1,865 @@
+9d8
+< 
+20c19
+<    model_parameters%number_of_regions = 1152
+---
+>    model_parameters%number_of_regions = 1152!*4 
+23c22
+< 
+---
+>    
+26,28c25,26
+<    model_parameters%num_predictions = 5!0
+<    model_parameters%trial_name = '6000_20_20_20_beta_res1.0_beta_model_0.01_prior_0.0_overlap1_vertlevel_1_era5_weights_29yrs_Troy_trained' ! ML_SPEEDY_WEIGHTS FILE NAMES 14d_0.9rho_10noise_beta0.001_20years'  
+< 
+---
+>    model_parameters%num_predictions = 1
+>    model_parameters%trial_name = '6000_20_20_20_sigma0.5_beta_res0.001_beta_model_1.0_prior_0.0_overlap1_vertlevel_1_precip_epsilon0.001_starting_1981_2002'!2kbias_10_year_then_platue_speedy_atmo_only' !14d_0.9rho_10noise_beta0.001_20years'  
+31a30
+>    model_parameters%trial_name_extra_end = ''!'climo_2kbias_10_year_then_platue_speedy_bc_atmo_no_ice_2k_sst_mean_20std_increase_'
+34,36c33,35
+<    model_parameters%traininglength = 8760*29!debugging length 8760*3 !8760*19 !14000*6 !166440 - 24*10  !87600*2+24*10!3+24*10!188280 !254040 !81600!188280!0!0!0!166600!81600 !00!58000!67000!77000
+<    model_parameters%predictionlength = 24!*100!8760*3!1 + 24*5!8760*30 + 24*5!504!8760*11 + 24*5 !504!0
+<    model_parameters%synclength = 24*4 !24*14*2 !+ 180*24
+---
+>    model_parameters%traininglength = 8760*21 - 24*10!60000!385440 !120000!227760 - 24*10 !- 40*24!166440 - 24*10  !87600*2+24*10!3+24*10!188280 !254040 !81600!188280!0!0!0!166600!81600 !00!58000!67000!77000
+>    model_parameters%predictionlength = 8760*70!*70!8760*70!8760*3!1 + 24*5!8760*30 + 24*5!504!8760*11 + 24*5 !504!0
+>    model_parameters%synclength = 24*14!*4 + 3*24!24*14*2 !+ 180*24
+42c41
+<    model_parameters%slab_ocean_model_bool = .False.
+---
+>    model_parameters%slab_ocean_model_bool = .True.
+45c44,49
+<    model_parameters%precip_bool = .False. !.True.  
+---
+>    model_parameters%ohtc_bool_input = .False.
+> 
+>    model_parameters%non_stationary_ocn_climo = .False.
+>    model_parameters%final_sst_bias = 2.0
+> 
+>    model_parameters%precip_bool = .True. !.True.  
+68,69c72,73
+< 
+<    model_parameters%train_on_era5 = .True.
+---
+>   
+>    model_parameters%outvec_component_contribs = .False.
+91,92c95,96
+<   reservoir%beta_res = 1.0_dp !1.0_dp
+<   reservoir%beta_model = 0.01_dp!1.0_dp
+---
+>   reservoir%beta_res = 0.001_dp
+>   reservoir%beta_model = 1.0_dp !0.01_dp!1.0_dp
+99c103
+<   reservoir%density = reservoir%deg/reservoir%m
+---
+>   reservoir%density = reservoir%deg/real(reservoir%m,kind=dp)
+105c109
+<   else 
+---
+>   else  
+162a167,168
+>   print *, 'grid%inputxchunk,grid%inputychunk,grid%inputzchunk,reservoir%local_predictvars',grid%inputxchunk,grid%inputychunk,grid%inputzchunk,reservoir%local_predictvars
+>   print *,'grid%inputxchunk*grid%inputychunk*grid%inputzchunk*reservoir%local_predictvars,reservoir%logp_size_input, reservoir%precip_size_input,reservoir%tisr_size_input,reservoir%sst_size_input',grid%inputxchunk*grid%inputychunk*grid%inputzchunk*reservoir%local_predictvars,reservoir%logp_size_input, reservoir%precip_size_input,reservoir%tisr_size_input,reservoir%sst_size_input
+164a171
+>   print *, 'reservoir%chunk_size,reservoir%locality,nodes_per_input,n',reservoir%chunk_size,reservoir%locality, nodes_per_input,reservoir%n
+168,172c175,179
+<   allocate(reservoir%vals(reservoir%k))
+<   allocate(reservoir%win(reservoir%n,reservoir%reservoir_numinputs))
+<   allocate(reservoir%wout(reservoir%chunk_size_prediction,reservoir%n+reservoir%chunk_size_speedy))
+<   allocate(reservoir%rows(reservoir%k))
+<   allocate(reservoir%cols(reservoir%k))
+---
+>   if(.not. allocated(reservoir%vals)) allocate(reservoir%vals(reservoir%k))
+>   if(.not. allocated(reservoir%win))  allocate(reservoir%win(reservoir%n,reservoir%reservoir_numinputs))
+>   if(.not. allocated(reservoir%wout)) allocate(reservoir%wout(reservoir%chunk_size_prediction,reservoir%n+reservoir%chunk_size_speedy))
+>   if(.not. allocated(reservoir%rows)) allocate(reservoir%rows(reservoir%k))
+>   if(.not. allocated(reservoir%cols)) allocate(reservoir%cols(reservoir%k))
+228c235
+<     reservoir%tisr_input_bool = .False.
+---
+>     reservoir%tisr_input_bool = .True.
+232c239
+<     reservoir%sst_climo_bool = .False.
+---
+>     reservoir%sst_climo_bool = .False.!.True. !.False.
+242c249
+<     reservoir%tisr_input_bool = .False.
+---
+>     reservoir%tisr_input_bool = .True.
+247,252c254,256
+< 
+<    if(model_parameters%train_on_era5) then
+<      call get_training_data_era5(reservoir,model_parameters,grid,1)
+<    else 
+<      call get_training_data(reservoir,model_parameters,grid,1)
+<    endif
+---
+>  
+>    call get_training_data(reservoir,model_parameters,grid,1)
+>  
+258a263
+>    !q = reservoir%reservoir_numinputs
+273a279
+>       !reservoir%win(:,i) = reservoir%sigma*ip
+283c289
+<    do i=1,1 !No time steps model_parameters%timestep
+---
+>    do i=1,model_parameters%timestep
+290c296
+<         call reservoir_layer_chunking_ml(reservoir,model_parameters,grid,reservoir%trainingdata(:,i:model_parameters%traininglength/model_parameters%timestep))
+---
+>         call reservoir_layer_chunking_ml(reservoir,model_parameters,grid,reservoir%trainingdata(:,i:model_parameters%traininglength:model_parameters%timestep))
+292c298
+<         call reservoir_layer_chunking_hybrid(reservoir,model_parameters,grid,reservoir%trainingdata(:,i:model_parameters%traininglength/model_parameters%timestep),reservoir%imperfect_model_states(:,i:model_parameters%traininglength/model_parameters%timestep))
+---
+>         call reservoir_layer_chunking_hybrid(reservoir,model_parameters,grid,reservoir%trainingdata(:,i:model_parameters%traininglength:model_parameters%timestep),reservoir%imperfect_model_states(:,i:model_parameters%traininglength:model_parameters%timestep))
+297,302c303,308
+<    !if((model_parameters%slab_ocean_model_bool).and.(grid%bottom)) then
+<    !  if(allocated(reservoir%imperfect_model_states)) deallocate(reservoir%imperfect_model_states) 
+<    !else  
+<    !  deallocate(reservoir%trainingdata)
+<    !  if(allocated(reservoir%imperfect_model_states)) deallocate(reservoir%imperfect_model_states)
+<    !endif 
+---
+>    if((model_parameters%slab_ocean_model_bool).and.(grid%bottom)) then
+>      if(allocated(reservoir%imperfect_model_states)) deallocate(reservoir%imperfect_model_states) 
+>    else  
+>      deallocate(reservoir%trainingdata)
+>      if(allocated(reservoir%imperfect_model_states)) deallocate(reservoir%imperfect_model_states)
+>    endif 
+316,633d321
+< subroutine get_training_data_era5(reservoir,model_parameters,grid,loop_index)
+<    use mod_utilities, only : era_data_type, speedy_data_type, &
+<                              standardize_sst_data_3d, &
+<                              standardize_data_given_pars_5d_logp_tisr, &
+<                              standardize_data_given_pars_5d_logp, &
+<                              standardize_data_given_pars5d, &
+<                              standardize_data, &
+<                              total_precip_over_a_period, &
+<                              standardize_data_3d, &
+<                              unstandardize_data_2d, &
+<                              e_constant, &
+<                              rolling_average_over_a_period
+< 
+<    use mod_calendar
+<    use speedy_res_interface, only : read_era, read_model_states, read_letkf_analysis, read_model_states_letkf
+<    use resdomain, only : standardize_speedy_data
+< 
+<    type(reservoir_type), intent(inout)        :: reservoir
+<    type(model_parameters_type), intent(inout) :: model_parameters
+<    type(grid_type), intent(inout)             :: grid
+< 
+<    integer, intent(in) :: loop_index
+< 
+<    type(era_data_type)    :: era_data
+<    type(speedy_data_type) :: speedy_data
+< 
+<    integer :: mean_std_length
+< 
+<    reservoir%local_predictvars = model_parameters%full_predictvars
+<    reservoir%local_heightlevels_input = grid%inputzchunk
+<    
+<    reservoir%local_heightlevels_res = grid%reszchunk
+< 
+<    call initialize_calendar(calendar,1981,1,1,0)
+< 
+<    call get_current_time_delta_hour(calendar,model_parameters%discardlength+model_parameters%traininglength+model_parameters%synclength)
+< 
+<    print *, 'reading era states'
+< 
+<    !Read data in stride and whats only needed for this loop of training
+<    call read_era(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,era_data)
+< 
+<    !Match units for specific humidity
+<    era_data%eravariables(4,:,:,:,:) = era_data%eravariables(4,:,:,:,:)*1000.0_dp
+< 
+<    !era_data%eravariables = era_data%eravariables(:,:,:,8:1:-1,:)
+<    ! 1.12.24 TROY DELTE LINE REVERSE ORDER
+< 
+<    where (era_data%eravariables(4,:,:,:,:) < 0.000001)
+<     era_data%eravariables(4,:,:,:,:) = 0.000001_dp
+<    end where
+<    !print *, 'shape(era_data%eravariables)',shape(era_data%eravariables)
+<    !print *, 'era_data',era_data%eravariables(1,:,:,:,10:11)
+<    !Make sure tisr doesnt have zeroes
+<    if(reservoir%tisr_input_bool) then
+<     where(era_data%era_tisr < 0.0_dp)
+<       era_data%era_tisr = 0.0_dp
+<     end where
+<    endif
+<   
+<    if(reservoir%precip_bool) then
+<     !era_data%era_precip = era_data%era_precip * 39.3701
+<     where(era_data%era_precip < 0.0_dp)
+<       era_data%era_precip = 0.0_dp
+<     end where
+<     if(reservoir%assigned_region == 954) print *, 'era_data%era_precip(1,1,100) before',era_data%era_precip(1,1,100:150)
+<     call total_precip_over_a_period(era_data%era_precip,model_parameters%timestep)
+<     if(reservoir%assigned_region == 954) print *, 'era_data%era_precip(1,1,100) after average',era_data%era_precip(1,1,100:150)
+<     if(reservoir%assigned_region == 954) print *, 'era_data%era_precip/model_parameters%precip_epsilon',era_data%era_precip(1,1,100:150)/model_parameters%precip_epsilon
+<     era_data%era_precip =  log(1 + era_data%era_precip/model_parameters%precip_epsilon)
+<     if(reservoir%assigned_region == 954) print *, 'era_data%era_precip(1,1,100:150) after',era_data%era_precip(1,1,100:150)
+<   endif
+< 
+<   !NOTE TODO change back
+<   if(reservoir%sst_bool .and. .not. model_parameters%train_on_sst_anomalies) then
+<     where(era_data%era_sst < 272.0_dp)
+<       era_data%era_sst = 272.0_dp
+<     end where
+<   endif
+< 
+<   if(reservoir%assigned_region == 954) print *, 'era_data%eravariables(:,2,2,8,100)',era_data%eravariables(:,2,2,:,100)
+<   !if(reservoir%assigned_region == 954) print *,
+<   !'era_data%eravariables(4,2,2,:,1)', era_data%eravariables(4,2,2,:,1)
+<   !if(reservoir%assigned_region == 954) print *, '
+<   !era_data%era_tisr(:,1:6)',era_data%era_tisr(4,4,1:6)
+< 
+<   if(reservoir%assigned_region == 954) then
+<     print *, 'era max min temp before',maxval(era_data%eravariables(1,:,:,:,:)),minval(era_data%eravariables(1,:,:,:,:))
+<     print *, 'era max min u-wind before',maxval(era_data%eravariables(2,:,:,:,:)),minval(era_data%eravariables(2,:,:,:,:))
+<     print *, 'era max min v-wind before',maxval(era_data%eravariables(3,:,:,:,:)),minval(era_data%eravariables(3,:,:,:,:))
+<     print *, 'era max min sp before',maxval(era_data%eravariables(4,:,:,:,:)),minval(era_data%eravariables(4,:,:,:,:))
+<     if(reservoir%logp_bool) print *, 'era max min logp before',maxval(era_data%era_logp),minval(era_data%era_logp)
+< 
+<     if(reservoir%tisr_input_bool) print *, 'era max min tisr before',maxval(era_data%era_tisr),minval(era_data%era_tisr)
+<     if(reservoir%sst_bool)  print *, 'era max min sst before',maxval(era_data%era_sst),minval(era_data%era_sst)
+<     if(reservoir%precip_bool) print *, 'era max min precip rate before',maxval(era_data%era_precip), minval(era_data%era_precip)
+<   endif
+<   !Get mean and standard deviation for the first stride of data and use those
+<   !values for the rest of the program
+<   if (loop_index == 1) then
+<      !Standardize each variable using local std and mean and save the std and
+<      !mean
+< 
+<      !Get number of height levels * vars + 2d variables
+<      mean_std_length = model_parameters%full_predictvars*grid%inputzchunk
+<      if(reservoir%logp_bool) then
+<        mean_std_length = mean_std_length + 1
+<        grid%logp_mean_std_idx = mean_std_length
+<      endif
+< 
+<      if(reservoir%tisr_input_bool) then
+<         mean_std_length = mean_std_length + 1
+<         grid%tisr_mean_std_idx = mean_std_length
+<      endif
+< 
+<      if(reservoir%precip_bool)  then
+<        mean_std_length = mean_std_length + 1
+<        grid%precip_mean_std_idx = mean_std_length
+<      endif
+< 
+<      if(reservoir%sst_bool) then
+<         mean_std_length = mean_std_length + 1
+<         grid%sst_mean_std_idx = mean_std_length
+<      endif
+< 
+<      allocate(grid%mean(mean_std_length),grid%std(mean_std_length))
+< 
+<      if((reservoir%tisr_input_bool).and.(reservoir%logp_bool)) then
+<         !grid%tisr_mean_std_idx =
+<         !reservoir%local_predictvars*reservoir%local_heightlevels_input+2
+<         !grid%logp_mean_std_idx =
+<         !reservoir%local_predictvars*reservoir%local_heightlevels_input+1
+< 
+<         print *, 'mean_std_length',mean_std_length
+<         call standardize_data(reservoir,era_data%eravariables,era_data%era_logp,era_data%era_tisr,grid%mean,grid%std)
+<      elseif(reservoir%logp_bool) then
+<         !grid%logp_mean_std_idx =
+<         !reservoir%local_predictvars*reservoir%local_heightlevels_input+1
+< 
+<         print *, 'no tisr_input'
+<         call standardize_data(reservoir,era_data%eravariables,era_data%era_logp,grid%mean,grid%std)
+<         where (grid%std < 0.00001)
+<            grid%std = 0.00001
+<         end where
+<      elseif(reservoir%tisr_input_bool) then
+<         !grid%tisr_mean_std_idx =
+<         !reservoir%local_predictvars*reservoir%local_heightlevels_input+1
+< 
+<         call standardize_data(reservoir,era_data%eravariables,era_data%era_tisr,grid%mean,grid%std)
+<      else
+<         call standardize_data(reservoir,era_data%eravariables,grid%mean,grid%std)
+<      endif
+< 
+<      if(reservoir%sst_bool) then
+<         !grid%sst_mean_std_idx = mean_std_length
+<         call standardize_sst_data_3d(era_data%era_sst,grid%mean(grid%sst_mean_std_idx),grid%std(grid%sst_mean_std_idx),reservoir%sst_bool_input)
+<      else
+<         reservoir%sst_bool_input = .False.
+<      endif
+< 
+<      if(reservoir%precip_bool) then
+<        ! if(reservoir%assigned_region == 954) print *, 'era_data%era_precip
+<        ! before',era_data%era_precip(1,1,1:100)
+<         !call
+<         !total_precip_over_a_period(era_data%era_precip,model_parameters%timestep)
+<         !if(reservoir%assigned_region == 954) print *, 'era max min precip rate
+<         !after summing',maxval(era_data%era_precip), minval(era_data%era_precip)
+<         !if(reservoir%assigned_region == 954) print *, 'era_data%era_precip
+<         !after',era_data%era_precip(1,1,1:100)
+<         call standardize_data_3d(era_data%era_precip,grid%mean(grid%precip_mean_std_idx),grid%std(grid%precip_mean_std_idx))
+<         if(reservoir%assigned_region == 954) print *, 'precip mean and std',grid%mean(grid%precip_mean_std_idx),grid%std(grid%precip_mean_std_idx)
+<      endif
+<    else
+<      !Standardize the data from the first stride's std and mean
+<      if((reservoir%tisr_input_bool).and.(reservoir%logp_bool)) then
+<         call standardize_data_given_pars_5d_logp_tisr(grid%mean,grid%std,era_data%eravariables,era_data%era_logp,era_data%era_tisr)
+<      elseif(reservoir%logp_bool) then
+<         call standardize_data_given_pars_5d_logp(grid%mean,grid%std,era_data%eravariables,era_data%era_logp)
+<      elseif(reservoir%tisr_input_bool) then
+<         call standardize_data_given_pars_5d_logp(grid%mean,grid%std,era_data%eravariables,era_data%era_tisr)
+<      else
+<         call standardize_data_given_pars5d(grid%mean,grid%std,era_data%eravariables)
+<      endif
+<    endif
+< 
+<    if(reservoir%assigned_region == 954) then
+<       print *, 'era max min temp after',maxval(era_data%eravariables(1,:,:,:,:)),minval(era_data%eravariables(1,:,:,:,:))
+<      print *, 'era max min u-wind after',maxval(era_data%eravariables(2,:,:,:,:)),minval(era_data%eravariables(2,:,:,:,:))
+<      print *, 'era max min v-wind after',maxval(era_data%eravariables(3,:,:,:,:)),minval(era_data%eravariables(3,:,:,:,:))
+<      print *, 'era max min sp after',maxval(era_data%eravariables(4,:,:,:,:)),minval(era_data%eravariables(4,:,:,:,:))
+<      if(reservoir%logp_bool) print *, 'era max min logp after',maxval(era_data%era_logp),minval(era_data%era_logp)
+< 
+<      if(reservoir%tisr_input_bool) print *, 'era max min tisr after',maxval(era_data%era_tisr),minval(era_data%era_tisr)
+<      if(reservoir%sst_bool)  print *, 'era max min sst after',maxval(era_data%era_sst),minval(era_data%era_sst)
+<      if(reservoir%precip_bool) print *, 'era max min precip rate after',maxval(era_data%era_precip), minval(era_data%era_precip)
+<      print *, 'res%mean,res%std',grid%mean,grid%std
+<    endif
+< 
+<    !NOTE moving this here to we can get the training data
+<    call allocate_res_new(reservoir,grid,model_parameters)
+< 
+<    !Lets get some training data
+<    allocate(reservoir%trainingdata(reservoir%reservoir_numinputs,size(era_data%eravariables,5)))
+< 
+<    print *, 'reservoir%reservoir_numinputs',reservoir%reservoir_numinputs,reservoir%assigned_region,grid%level_index
+< 
+<    grid%logp_start = 0
+<    grid%logp_end = 0
+<    grid%sst_start = 0
+<    grid%sst_end = 0
+< 
+<    grid%atmo3d_start = 1
+<    grid%atmo3d_end = model_parameters%full_predictvars*grid%inputxchunk*grid%inputychunk*grid%inputzchunk
+< 
+<    grid%predict_start = 1
+<    grid%predict_end = grid%atmo3d_end
+<    print *, 'grid%atmo3d_start,grid%atmo3d_end',grid%atmo3d_start,grid%atmo3d_end
+<    print *, 'shape(reservoir%trainingdata(grid%atmo3d_start:grid%atmo3d_end,:))',shape(reservoir%trainingdata(grid%atmo3d_start:grid%atmo3d_end,:))
+<    print *, 'shape(reshape(era_data%eravariables,(/grid%atmo3d_end,size(era_data%eravariables,5)/)))',shape(reshape(era_data%eravariables,(/grid%atmo3d_end,size(era_data%eravariables,5)/)))
+<    reservoir%trainingdata(grid%atmo3d_start:grid%atmo3d_end,:) = reshape(era_data%eravariables,(/grid%atmo3d_end,size(era_data%eravariables,5)/))
+< 
+<    if(reservoir%logp_bool) then
+<      grid%logp_start = grid%atmo3d_end + 1
+<      grid%logp_end = grid%atmo3d_end + reservoir%logp_size_input
+<      reservoir%trainingdata(grid%logp_start:grid%logp_end,:) = reshape(era_data%era_logp,(/reservoir%logp_size_input,size(era_data%eravariables,5)/))
+< 
+<      grid%predict_end = grid%logp_end
+<    endif
+< 
+<    if(reservoir%precip_bool) then
+<      grid%precip_start = grid%atmo3d_end + reservoir%logp_size_input + 1
+<      grid%precip_end = grid%precip_start + reservoir%precip_size_input - 1
+<      reservoir%trainingdata(grid%precip_start:grid%precip_end,:) = reshape(era_data%era_precip,(/reservoir%precip_size_input,size(era_data%eravariables,5)/))
+< 
+<      grid%predict_end = grid%precip_end
+<    endif
+< 
+<    if(reservoir%sst_bool_input) then
+<      grid%sst_start = grid%atmo3d_end + reservoir%logp_size_input + reservoir%precip_size_input + 1
+<      grid%sst_end =  grid%sst_start + reservoir%sst_size_input - 1
+<      reservoir%trainingdata(grid%sst_start:grid%sst_end,:) = reshape(era_data%era_sst,(/reservoir%sst_size_input,size(era_data%eravariables,5)/))
+<    endif
+< 
+<    if(reservoir%tisr_input_bool) then
+<      grid%tisr_start = grid%atmo3d_end + reservoir%logp_size_input + reservoir%precip_size_input + reservoir%sst_size_input + 1
+<      grid%tisr_end = grid%tisr_start + reservoir%tisr_size_input - 1
+<      reservoir%trainingdata(grid%tisr_start:grid%tisr_end,:) = reshape(era_data%era_tisr,(/reservoir%tisr_size_input,size(era_data%eravariables,5)/))
+<    endif
+< 
+<    if(reservoir%assigned_region == 0) print *, 'standardized era_data%eravariables(4,1,1,:,100)',era_data%eravariables(4,1,1,:,100)
+<    if(reservoir%assigned_region == 0) print *, 'reservoir%trainingdata(:,1000)',reservoir%trainingdata(:,1000)
+<    !if(reservoir%assigned_region == 954) print *,
+<    !'reservoir%trainingdata(grid%tisr_start,1000:1100)',reservoir%trainingdata(grid%tisr_start,1000:1100)
+<    deallocate(era_data%eravariables)
+<    deallocate(era_data%era_logp)
+< 
+<    if(allocated(era_data%era_tisr)) then
+<      deallocate(era_data%era_tisr)
+<    endif
+< 
+<    if(allocated(era_data%era_sst)) then
+<      deallocate(era_data%era_sst)
+<    endif
+< 
+< 
+<    !Portion of the routine for getting speedy (imperfect model) data
+< 
+<    if(.not. model_parameters%ml_only) then
+<      print *, 'reading model states'
+<      call read_model_states(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,speedy_data)
+< 
+<      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,1,1,1,1)',speedy_data%speedyvariables(:,1,1,1,1)
+< 
+<      !Lets get imperfect model states
+<      where(speedy_data%speedyvariables(4,:,:,:,:) < 0.000001)
+<         speedy_data%speedyvariables(4,:,:,:,:) = 0.000001_dp
+<      end where
+< 
+<      where(speedy_data%speedyvariables > 400)
+<         speedy_data%speedyvariables = 0.0_dp
+<      endwhere
+<      where(speedy_data%speedy_logp > 1.0)
+<        speedy_data%speedy_logp = 0.0
+<      endwhere
+< 
+<      if(reservoir%assigned_region == 954) then
+<        print *, 'speedy max min temp',maxval(speedy_data%speedyvariables(1,:,:,:,:)),minval(speedy_data%speedyvariables(1,:,:,:,:))
+<        print *, 'speedy max min u-wind',maxval(speedy_data%speedyvariables(2,:,:,:,:)),minval(speedy_data%speedyvariables(2,:,:,:,:))
+<        print *, 'speedy max min v-wind',maxval(speedy_data%speedyvariables(3,:,:,:,:)),minval(speedy_data%speedyvariables(3,:,:,:,:))
+<        print *, 'speedy max min sp',maxval(speedy_data%speedyvariables(4,:,:,:,:)),minval(speedy_data%speedyvariables(4,:,:,:,:))
+<        if(reservoir%logp_bool) print *, 'speedy max min logp',maxval(speedy_data%speedy_logp),minval(speedy_data%speedy_logp)
+< 
+<        print *, 'res%mean,res%std',grid%mean, grid%std
+<      endif
+< 
+<      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,2,2,8,100)',speedy_data%speedyvariables(:,2,2,:,100)
+< 
+<      if(reservoir%assigned_region == 36)  print *, 'reservoir%trainingdata(grid%tisr_start:grid%tisr_end,1000:1100)', reservoir%trainingdata(grid%tisr_start,1000:1100)
+<      if(reservoir%assigned_region == 0)  print *, 'unstandardized speedy_data%speedy_logp(1,1,1000)',speedy_data%speedy_logp(1,1,1000)
+<      call standardize_speedy_data(reservoir,grid,speedy_data)
+< 
+<      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,1,1,1,1) after',speedy_data%speedyvariables(:,1,1,1,1)
+<      allocate(reservoir%imperfect_model_states(reservoir%chunk_size_speedy,size(speedy_data%speedyvariables,5)))
+<      reservoir%imperfect_model_states = 0.0_dp
+< 
+<      reservoir%imperfect_model_states(1:reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,:) = reshape(speedy_data%speedyvariables,(/reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,size(speedy_data%speedyvariables,5)/))
+< 
+<      if(reservoir%logp_bool) then
+<         reservoir%imperfect_model_states(reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk+1:reservoir%chunk_size_speedy,:) = reshape(speedy_data%speedy_logp,(/grid%resxchunk*grid%resychunk,size(speedy_data%speedyvariables,5)/))
+<      endif
+< 
+<      deallocate(speedy_data%speedyvariables)
+<      deallocate(speedy_data%speedy_logp)
+< 
+<      if(reservoir%assigned_region == 0)  print *, 'reservoir%mperfect_model_states(:,1000)',reservoir%imperfect_model_states(:,1000)
+<    endif
+< end subroutine
+< 
+648c336
+<    use speedy_res_interface, only : read_era, read_model_states, read_letkf_analysis, read_model_states_letkf
+---
+>    use speedy_res_interface, only : read_era, read_model_states
+667c355
+<    call initialize_calendar(calendar,1990,1,1,0)
+---
+>    call initialize_calendar(calendar,1981,1,1,0)
+674c362
+<    call read_letkf_analysis(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,era_data)
+---
+>    call read_era(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,era_data)
+678,680d365
+< 
+<    era_data%eravariables = era_data%eravariables(:,:,:,8:1:-1,:)
+< 
+706d390
+<   !NOTE TODO change back 
+713,716d396
+<   if(reservoir%assigned_region == 954) print *, 'era_data%eravariables(:,2,2,8,100)',era_data%eravariables(:,2,2,:,100)
+<   !if(reservoir%assigned_region == 954) print *, 'era_data%eravariables(4,2,2,:,1)', era_data%eravariables(4,2,2,:,1)
+<   !if(reservoir%assigned_region == 954) print *, ' era_data%era_tisr(:,1:6)',era_data%era_tisr(4,4,1:6)
+< 
+763a444
+>         !call standardize_data(reservoir,grid,era_data%eravariables,era_data%era_logp,era_data%era_tisr,grid%mean,grid%std)
+767d447
+<         print *, 'no tisr_input'
+769,771d448
+<         where (grid%std < 0.00001)
+<            grid%std = 0.00001
+<         end where
+872,874c549,551
+<    if(reservoir%assigned_region == 0) print *, 'standardized era_data%eravariables(4,1,1,:,100)',era_data%eravariables(4,1,1,:,100)
+<    if(reservoir%assigned_region == 0) print *, 'reservoir%trainingdata(:,1000)',reservoir%trainingdata(:,1000)
+<    !if(reservoir%assigned_region == 954) print *, 'reservoir%trainingdata(grid%tisr_start,1000:1100)',reservoir%trainingdata(grid%tisr_start,1000:1100)
+---
+>    
+>    if(reservoir%assigned_region == 954) print *, 'reservoir%trainingdata(:,1000)',reservoir%trainingdata(:,1000)
+>    if(reservoir%assigned_region == 954) print *, 'reservoir%trainingdata(grid%tisr_start,1000:1100)',reservoir%trainingdata(grid%tisr_start,1000:1100)
+891,894c568,569
+<      call read_model_states_letkf(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,speedy_data)
+<   
+<      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,1,1,1,1)',speedy_data%speedyvariables(:,1,1,1,1)
+< 
+---
+>      call read_model_states(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,speedy_data)
+>    
+900,906d574
+<      where(speedy_data%speedyvariables > 400) 
+<         speedy_data%speedyvariables = 0.0_dp
+<      endwhere 
+<      where(speedy_data%speedy_logp > 1.0) 
+<        speedy_data%speedy_logp = 0.0
+<      endwhere 
+< 
+917c585
+<      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,2,2,8,100)',speedy_data%speedyvariables(:,2,2,:,100)
+---
+>      if(reservoir%assigned_region == 954) print *, 'speedy_data%speedyvariables(:,1,1,1,1)',speedy_data%speedyvariables(:,1,1,1,1)
+920d587
+<      if(reservoir%assigned_region == 0)  print *, 'unstandardized speedy_data%speedy_logp(1,1,1000)',speedy_data%speedy_logp(1,1,1000)
+935,936d601
+< 
+<      if(reservoir%assigned_region == 0)  print *, 'reservoir%mperfect_model_states(:,1000)',reservoir%imperfect_model_states(:,1000)
+947c612,613
+<                              total_precip_over_a_period
+---
+>                              total_precip_over_a_period, &
+>                              opened_netcdf_type
+950c616,617
+<    use speedy_res_interface, only : read_era, read_model_states, read_letkf_analysis, read_model_states_letkf
+---
+>    use speedy_res_interface, only : read_era, read_model_states, &
+>                                     read_era_netcdf_opened
+961a629,630
+>    integer                :: max_netcdf_files
+> 
+973,980c642,658
+<    !Read data in stride and whats only needed for this loop of training
+<    call read_letkf_analysis(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,era_data)
+< 
+<    start_time_memory_index = start_index/model_parameters%timestep!hours_into_first_year   
+<    end_time_memory_index = start_time_memory_index + length/model_parameters%timestep
+<    
+<    print *, 'start_time_memory_index',start_time_memory_index
+<    print *, 'end_time_memory_index',end_time_memory_index
+---
+>    if(model_parameters%num_of_regions_on_proc > 1153) then
+>      if(.not. allocated(model_parameters%opened_netcdf_files)) then
+>         max_netcdf_files = (calendar%currentyear - start_year + 1) * 6 
+>         allocate(model_parameters%opened_netcdf_files(max_netcdf_files))
+>         model_parameters%opened_netcdf_files(:)%is_opened = .False.
+>      endif 
+>      call read_era_netcdf_opened(reservoir,grid,model_parameters,start_year,calendar%currentyear,era_data,model_parameters%opened_netcdf_files,1)
+>    else 
+>      !Read data in stride and whats only needed for this loop of training
+>      !This is the normal routine when we just have 1 region per processor
+>      !If we have more then we can get a big speed up by keep files opened 
+>      !but it requires over head and more complication so its not worth doing for
+>      !1 region per processor
+>      call read_era(reservoir,grid,model_parameters,start_year,calendar%currentyear,era_data,1)
+>    endif 
+>    start_time_memory_index = hours_into_first_year   
+>    end_time_memory_index = start_time_memory_index + length
+985,986d662
+<    era_data%eravariables = era_data%eravariables(:,:,:,8:1:-1,:)
+< 
+998c674,679
+<    if(reservoir%sst_bool .and. .not. model_parameters%train_on_sst_anomalies) then
+---
+>    if(reservoir%sst_bool .and. .not. model_parameters%train_on_sst_anomalies) then 
+>      !NOTE Trying to give a distinction between land and sea ice
+>      !where(era_data%era_sst < -1) 
+>      !  era_data%era_sst = 271.0_dp
+>      !end where 
+>      !Note maybe we should make it 271.5 
+1016,1017c697,698
+<   !grid%mean(:) = 0
+<   !grid%std(:) = 1
+---
+> 
+> 
+1044c725
+<    reservoir%predictiondata(grid%atmo3d_start:grid%atmo3d_end,:) = reshape(era_data%eravariables(:,:,:,:,start_time_memory_index:end_time_memory_index),[grid%atmo3d_end,length/model_parameters%timestep])
+---
+>    reservoir%predictiondata(grid%atmo3d_start:grid%atmo3d_end,:) = reshape(era_data%eravariables(:,:,:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[grid%atmo3d_end,length/model_parameters%timestep])
+1047c728
+<      reservoir%predictiondata(grid%logp_start:grid%logp_end,:) = reshape(era_data%era_logp(:,:,start_time_memory_index:end_time_memory_index),[reservoir%logp_size_input,length/model_parameters%timestep])
+---
+>      reservoir%predictiondata(grid%logp_start:grid%logp_end,:) = reshape(era_data%era_logp(:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[reservoir%logp_size_input,length/model_parameters%timestep])
+1051c732
+<      reservoir%predictiondata(grid%precip_start:grid%precip_end,:) = reshape(era_data%era_precip(:,:,start_time_memory_index:end_time_memory_index),[reservoir%precip_size_input,length/model_parameters%timestep])
+---
+>      reservoir%predictiondata(grid%precip_start:grid%precip_end,:) = reshape(era_data%era_precip(:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[reservoir%precip_size_input,length/model_parameters%timestep])
+1055c736
+<      reservoir%predictiondata(grid%sst_start:grid%sst_end,:) = reshape(era_data%era_sst(:,:,start_time_memory_index:end_time_memory_index),[reservoir%sst_size_input,length/model_parameters%timestep])
+---
+>      reservoir%predictiondata(grid%sst_start:grid%sst_end,:) = reshape(era_data%era_sst(:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[reservoir%sst_size_input,length/model_parameters%timestep])
+1079,1080d759
+<    !print *, 'reservoir%predictiondata(:,5)',reservoir%predictiondata(:,5)
+< 
+1084c763
+<      call read_model_states_letkf(reservoir,grid,model_parameters,calendar%startyear,calendar%currentyear,speedy_data,1)
+---
+>      call read_model_states(reservoir,grid,model_parameters,start_year,calendar%currentyear,speedy_data,1)
+1101c780
+<      reservoir%imperfect_model_states(1:reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,:) = reshape(speedy_data%speedyvariables(:,:,:,:,start_time_memory_index:end_time_memory_index),[reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,length/model_parameters%timestep])
+---
+>      reservoir%imperfect_model_states(1:reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,:) = reshape(speedy_data%speedyvariables(:,:,:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk,length/model_parameters%timestep])
+1104c783
+<         reservoir%imperfect_model_states(reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk+1:reservoir%chunk_size_speedy,:) = reshape(speedy_data%speedy_logp(:,:,start_time_memory_index:end_time_memory_index),[grid%resxchunk*grid%resychunk,length/model_parameters%timestep])
+---
+>         reservoir%imperfect_model_states(reservoir%local_predictvars*grid%resxchunk*grid%resychunk*grid%reszchunk+1:reservoir%chunk_size_speedy,:) = reshape(speedy_data%speedy_logp(:,:,start_time_memory_index:end_time_memory_index:model_parameters%timestep),[grid%resxchunk*grid%resychunk,length/model_parameters%timestep])
+1143c822
+<    call get_prediction_data(reservoir,model_parameters,grid,model_parameters%traininglength-un_noisy_sync+1*model_parameters%timestep,un_noisy_sync)
+---
+>    call get_prediction_data(reservoir,model_parameters,grid,model_parameters%traininglength-un_noisy_sync,un_noisy_sync)
+1150a830,833
+>    if(model_parameters%non_stationary_ocn_climo) then 
+>       call get_full_sst_climo(reservoir,model_parameters,grid)
+>    endif 
+> 
+1159c842,847
+<    if(model_parameters%slab_ocean_model_bool .and. mpi_res%is_root .and. grid%bottom) then
+---
+>    if(model_parameters%outvec_component_contribs) then
+>      allocate(reservoir%v_ml(reservoir%chunk_size_prediction))
+>      allocate(reservoir%v_p(reservoir%chunk_size_prediction))
+>    endif 
+> 
+>    if(model_parameters%slab_ocean_model_bool .and. mpi_res%is_root .and. grid%bottom .and. reservoir%assigned_region == 0) then
+1181c869
+<      model_parameters%base_sst_grid = temp3d(:,:,1)
+---
+>      model_parameters%base_sst_grid = temp3d(:,:,1) !this is a major bug should be the current forecast start time 
+1214,1215c902,903
+<    file_path = '/scratch/user/troyarcomano/ERA_5/2012/'
+<    tisr_file = file_path//'toa_incident_solar_radiation_2012_regridded_classic4.nc'
+---
+>    file_path = '/scratch/user/troyarcomano/ERA_5/2007/' !2012/'
+>    tisr_file = file_path//'toa_incident_solar_radiation_2007_regridded_classic4.nc'
+1218c906
+<    print *, 'isr_mean_std_idx,grid%mean(grid%tisr_mean_std_idx),grid%std(grid%tisr_mean_std_idx)',grid%tisr_mean_std_idx,grid%mean(grid%tisr_mean_std_idx),grid%std(grid%tisr_mean_std_idx)
+---
+>    print *, 'tisr_mean_std_idx,grid%mean(grid%tisr_mean_std_idx),grid%std(grid%tisr_mean_std_idx)',grid%tisr_mean_std_idx,grid%mean(grid%tisr_mean_std_idx),grid%std(grid%tisr_mean_std_idx)
+1222a911,939
+> subroutine get_full_sst_climo(reservoir,model_parameters,grid)
+>    use mpires, only        : mpi_res
+>    use mod_io, only        : read_3d_file_parallel
+>    use mod_utilities, only : standardize_data_given_pars3d
+> 
+>    type(reservoir_type), intent(inout)        :: reservoir
+>    type(grid_type), intent(inout)             :: grid
+>    type(model_parameters_type), intent(inout) :: model_parameters
+> 
+>    character(len=:), allocatable :: file_path
+>    character(len=:), allocatable :: tisr_file
+> 
+>    file_path = '/scratch/user/troyarcomano/ERA_5/'
+>    tisr_file = file_path//'sst_regridded_climo1981_2021_gcc.nc'
+> 
+>    print *, 'sst_file',tisr_file
+>    call read_3d_file_parallel(tisr_file,'sst',mpi_res,grid,reservoir%full_sst,1,1)
+> 
+>    print *, 'tisr_mean_std_idx,grid%mean(grid%tisr_mean_std_idx),grid%std(grid%tisr_mean_std_idx)',grid%sst_mean_std_idx,grid%mean(grid%sst_mean_std_idx),grid%std(grid%sst_mean_std_idx)
+>  
+>    where(reservoir%full_sst < 272.0_dp)
+>        reservoir%full_sst = 272.0_dp
+>    end where
+>    if(reservoir%sst_bool_input) then
+>       call standardize_data_given_pars3d(reservoir%full_sst,grid%mean(grid%sst_mean_std_idx),grid%std(grid%sst_mean_std_idx))
+>    endif 
+> 
+> end subroutine
+> 
+1232,1236c949
+<    call get_prediction_data(reservoir,model_parameters,grid,model_parameters%traininglength+model_parameters%prediction_markers(prediction_number)+2*model_parameters%timestep,model_parameters%synclength+model_parameters%predictionlength+100)!+100)
+<    !Fortran is 1 based and the way the netcdf and datetime stuff is going on if
+<    !you train for 8760*9 hours (365*9 so no leap years)  starting on Jan 1 1990 00Z and sync for 4 days then
+<    !initial conditions used for the forecast would be Jan 2 1999 12Z so moving
+<    !the start_time_index for get_prediction_data fixes this 
+---
+>    call get_prediction_data(reservoir,model_parameters,grid,model_parameters%traininglength+model_parameters%prediction_markers(prediction_number),model_parameters%synclength+100)
+1301a1015
+>           !if(reservoir%assigned_region == 956) 
+1355a1070
+>    use mod_io, only : write_netcdf_2d_non_met_data_timeseries
+1368c1083
+<    real(kind=dp), allocatable :: temp(:), x(:), x_(:), y(:)
+---
+>    real(kind=dp), allocatable :: temp(:), x(:), x_(:), y(:), temp2(:)
+1373a1089,1090
+>    if(reservoir%assigned_region == 1094) allocate(temp2(reservoir%reservoir_numinputs))
+> 
+1451c1168,1170
+< 
+---
+>       if(reservoir%assigned_region == 1094) temp2 = gaussian_noise_1d_function(trainingdata(:,model_parameters%discardlength/model_parameters%timestep+i),reservoir%noisemag)
+>       if(reservoir%assigned_region == 1094) call write_netcdf_2d_non_met_data_timeseries(temp2,'input','inputvec_noisy.nc',i,'unitless','x','t')
+>       if(reservoir%assigned_region == 1094) call write_netcdf_2d_non_met_data_timeseries(trainingdata(:,model_parameters%discardlength/model_parameters%timestep+i),'input','inputvec.nc',i,'unitless','x','t')
+1501a1221
+>     print *, 'worker',reservoir%assigned_region,'wout(1,1:20)',reservoir%wout(1,1:20)
+1507,1509c1227,1229
+<     !if(reservoir%assigned_region == 954) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_954_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless')
+<     !if(reservoir%assigned_region == 217) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_217_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless')
+<     !if(reservoir%assigned_region == 218) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_218_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless')
+---
+>     if(reservoir%assigned_region == 954) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_954_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+>     if(reservoir%assigned_region == 217) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_217_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+>     if(reservoir%assigned_region == 218) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_218_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+1514a1235
+> 
+1540d1260
+< 
+1582a1303,1308
+>     print *, 'a_trans(1:20,1:20)',reservoir%assigned_region,a_trans(1:20,1:20)
+>     print *, 'b_trans(1:20,1:20)',reservoir%assigned_region, b_trans(1:20,1:20)
+>     !if(any(IEEE_IS_NAN(reservoir%states_x_states_aug))) print *, 'reservoir%states_x_states_aug nan', reservoir%assigned_region
+>     !if(any(IEEE_IS_NAN(reservoir%states_x_trainingdata_aug))) print *, 'reservoir%states_x_states_aug nan', reservoir%assigned_region
+>     !if(any(IEEE_IS_NAN(a_trans))) print *, 'a_trans has nan',reservoir%assigned_region
+>     !if(any(IEEE_IS_NAN(b_trans))) print *, 'b_trans has nan',reservoir%assigned_region
+1591a1318,1320
+>     !if(any(IEEE_IS_NAN(reservoir%wout))) print *, 'wout has nan', reservoir%assigned_region
+>     !if(IEEE_IS_NAN(reservoir%wout(1,1))) print *, 'wout element 1 has nan', reservoir%assigned_region
+> 
+1593a1323
+>     print *, 'worker',reservoir%assigned_region,'wout(1,1:20)',reservoir%wout(1,1:20)
+1598a1329,1331
+>     !if(reservoir%assigned_region == 954) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_954_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+>     !if(reservoir%assigned_region == 217) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_217_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+>     !if(reservoir%assigned_region == 218) call write_netcdf_2d_non_met_data(reservoir%wout,'wout','region_218_level_'//level_char//'wout_'//trim(model_parameters%trial_name)//'.nc','unitless','wout_x','wout_y')
+1600c1333
+<     if(write_training_weights) then
+---
+>     if(write_training_weights) then 
+1602c1335,1336
+<     endif
+---
+>     endif 
+> 
+1702a1437
+>     real(kind=dp), allocatable :: v_ml(:), v_p(:), v_h(:)
+1711,1712d1445
+<     if(reservoir%assigned_region == 954) print *,'reservoir%feedback used to start forecast',reservoir%feedback
+<     if(reservoir%assigned_region == 954) print *,'reservoir%local_model used to start forecast',reservoir%local_model
+1728c1461,1474
+<  
+---
+> 
+>     if(model_parameters%outvec_component_contribs) then
+>        reservoir%v_p = matmul(reservoir%wout(:,1:reservoir%chunk_size_speedy),reservoir%local_model)
+>        reservoir%v_ml = matmul(reservoir%wout(:,reservoir%chunk_size_speedy+1:reservoir%chunk_size_speedy+reservoir%n),x_temp)
+>     endif 
+>       
+>     if(reservoir%assigned_region == 954 .and. model_parameters%outvec_component_contribs) then
+>       print *,'reservoir%v_p',reservoir%v_p
+>       print *,'reservoir%v_ml',reservoir%v_ml
+>       print *,'reservoir%v_ml + reservoir%v_p',reservoir%v_ml + reservoir%v_p
+>       print *,'reservoir%outvec',reservoir%outvec
+>       print *,'diff',reservoir%outvec - (reservoir%v_ml + reservoir%v_p)
+>     endif 
+> 
+1730a1477,1481
+>     !if(model_parameters%outvec_component_contribs) then 
+>     !  call unstandardize_state_vec_res(reservoir,grid,reservoir%v_p)
+>     !  call unstandardize_state_vec_res(reservoir,grid,reservoir%v_ml)
+>     !endif 
+> 
+1829d1579
+< 
+1837a1588
+>    allocate(reservoir%current_state(reservoir%n))
+1841a1593
+>    reservoir%current_state = 0.0_dp
+1930c1682
+<    if(any(IEEE_IS_NAN(targetdata))) print *, 'targetdata has nan',reservoir%assigned_region,batch_number, targetdata(:,2)
+---
+>    if(any(IEEE_IS_NAN(targetdata))) print *, 'targetdata has nan',reservoir%assigned_region,batch_number
+1958c1710
+<   type(reservoir_type), intent(inout) :: reservoir
+---
+>   type(reservoir_type), intent(in) :: reservoir
+1967c1719
+<   integer :: i
+---
+>   integer :: i 
+1969c1721
+<   file_path = '/scratch/user/dylanelliott/ML_SPEEDY_WEIGHTS_TROYERA5fix_1_12_24/' !'/scratch/user/troyarcomano/ML_SPEEDY_WEIGHTS/'
+---
+>   file_path = '/scratch/user/troyarcomano/ML_SPEEDY_WEIGHTS/'
+1975,1976c1727,1728
+<     call write_controller_file(model_parameters)
+<   endif
+---
+>     call write_controller_file(model_parameters,reservoir) 
+>   endif 
+1982,1994d1733
+<   do i=1,40
+<      write(ens_member,'(i0.2)') i
+<     
+<      call synchronize(reservoir,reservoir%trainingdata(:,model_parameters%traininglength - model_parameters%synclength*(i+1):model_parameters%traininglength - model_parameters%synclength*i),reservoir%saved_state,model_parameters%synclength)
+< 
+<      if(i > 1) then  
+<        call write_netcdf_1d_non_met_data_real_shared_dim(reservoir%saved_state,'res_state'//ens_member,file_path//'worker_'//worker_char//'_level_'//height_char//'_'//trim(model_parameters%trial_name)//'.nc','unitless','n',.False.)
+<      else 
+<        call write_netcdf_1d_non_met_data_real_shared_dim(reservoir%saved_state,'res_state'//ens_member,file_path//'worker_'//worker_char//'_level_'//height_char//'_'//trim(model_parameters%trial_name)//'.nc','unitless','n',.True.)
+<      endif
+<      reservoir%saved_state = 0.0_dp
+<   enddo 
+< 
+2005c1744
+< subroutine write_controller_file(model_parameters)
+---
+> subroutine write_controller_file(model_parameters,reservoir)
+2006a1746
+>    type(reservoir_type), intent(in)        :: reservoir
+2010,2011c1750
+<    file_path = '/scratch/user/dylanelliott/ML_SPEEDY_WEIGHTS_TROYERA5fix_1_12_24/'//trim(model_parameters%trial_name)//'_controller_file.txt'
+< !'/scratch/user/troyarcomano/ML_SPEEDY_WEIGHTS/'//trim(model_parameters%trial_name)//'_controller_file.txt'
+---
+>    file_path = '/scratch/user/troyarcomano/ML_SPEEDY_WEIGHTS/'//trim(model_parameters%trial_name)//'_controller_file.txt'
+2017c1756,1766
+<    write(10,*)
+---
+>    write(10,*) "num_hor_regions:",model_parameters%number_of_regions
+>    write(10,*)"ml_only:",model_parameters%ml_only
+>    write(10,*)"num_vert_levels:",model_parameters%num_vert_levels
+>    write(10,*)"atmo_timestep:",model_parameters%timestep
+>    write(10,*)"ocean_timestep:",model_parameters%timestep_slab
+>    write(10,*)"ocean_model_bool:",model_parameters%slab_ocean_model_bool 
+>    write(10,*)"train_on_sst_anomalies:",model_parameters%train_on_sst_anomalies
+>    write(10,*)"precip_bool:",model_parameters%precip_bool
+>    write(10,*)"precip_epsilon:",model_parameters%precip_epsilon
+>    write(10,*)"full_predictvars:",model_parameters%full_predictvars
+>    write(10,*)"full_heightlevels:",model_parameters%full_heightlevels
+2018a1768,1779
+>    write(10,*)"vert_loc_overlap:",model_parameters%vert_loc_overlap
+>    write(10,*)"overlap:",model_parameters%overlap
+>    write(10,*)"regional_vary:",model_parameters%regional_vary
+>    write(10,*)"using_prior:",model_parameters%using_prior
+>    write(10,*)"reservoir_nodes:",reservoir%m
+>    write(10,*)"deg:",reservoir%deg
+>    write(10,*)"radius:",reservoir%radius
+>    write(10,*)"beta_res:",reservoir%beta_res
+>    write(10,*)"beta_model:",reservoir%beta_model
+>    write(10,*)"sigma:",reservoir%sigma
+>    write(10,*)"leakage:",reservoir%leakage
+>    write(10,*)"prior_val:",reservoir%prior_val
+2027c1788
+<   use mod_linalg, only : mklsparse
+---
+>   use mod_linalg, only : mklsparse 
+2038c1799
+<     reservoir%tisr_input_bool = .False.
+---
+>     reservoir%tisr_input_bool = .True.
+2057c1818
+< 
+---
+>  
+2088,2090c1849,1851
+<     else
+<       reservoir%sst_bool_input = .False.
+<     endif
+---
+>     else    
+>       reservoir%sst_bool_input = .False.  
+>     endif 
+2096c1857
+< 
+---
+>    
+2098c1859
+<   grid%logp_end = 0 
+---
+>   grid%logp_end = 0
