@@ -1,4 +1,4 @@
-# letkf-hybrid-speedy
+# letkf-hybrid-speedy-grace-training-edition-orgininal
 
 [![DOI](https://zenodo.org/badge/109124460.svg)](https://zenodo.org/badge/latestdoi/109124460)
 
@@ -21,6 +21,8 @@ Go to the `obs` directory and run `bash obsmake.sh` to make the observations. Th
 ### 3. Assimilate!
 
 Go to the `letkf/run` directory and first run `bash init.sh`. This builds the LETKF executable and sets up the output folders. Then run `bash run_cycle.sh double` to perform data assimilation with the double precision model or `bash run_cycle.sh reduced` to perform it with the reduced precision model. The output of the assimilation will be stored in `DATA/ensemble`.
+
+After training and when ready to run the hybrid model use run_cycle_hybrid_faster.sh and adjust the correct paths to the weights in mod_reservoir.f90 in the hybrid directory.
 
 ## Changing parameters
 
